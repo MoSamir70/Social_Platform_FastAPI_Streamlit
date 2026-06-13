@@ -1,0 +1,107 @@
+
+cd "E:\Data_Data Engineering\FastAPI\FastAPI_HandsOn\Social_Platform_FastAPI_Streamlit"
+
+conda deactivate ----> (base) -> is meaning conda is active by default so 
+
+----
+starship --version
+notepad ~/.bashrc
+source ~/.bashrc  
+
+--> know starship is active
+
+---
+uvicorn --> web server 
+uv --> package manager 
+
+
+install Uv ---> 
+
+winget install --id=astral-sh.uv -e  
+---> then restart terminal or Vs code 
+uv --version
+where uv
+
+uv init .
+uv add fastapi
+uv add python-dotenv
+uv add fastapi-users[sqlalchemy]
+uv add imagekitio
+uv add uvicorn[standard]
+uv add aiosqlite
+
+
+--------------------> https://imagekit.io/dashboard/media-library
+--> Create 
+.env
+.env.example
+
+---- imagekit
+
+create account --> go to left side -> developer options -> api key 
+
+IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_PRIVATE_KEY --> must make passoward on profile page
+IMAGEKIT_URL  --> exits in the upove
+
+copy them to .env 
+
+---------------------- FastApi SetUp
+
+make src/app Folder --then--> app.py
+
+the data return form endpoint ---must be---> python dicr or pydantic object
+
+clear mean.py and add Uvicorn
+
+run server -->> uv run .\main.py  --> error 
+
+Ctrl + Shift + P
+Python: Select Interpreter ---> your project path 
+
+uv run .\main.py ---->> error 
+uv run python main.py --->> use this
+uv run uvicorn app.app:app --reload
+
+---
+app folder not inside .venv !!!!!
+
+---- test api
+
+# app.app:app --> folder.file : variable of fastapi
+
+# http://127.0.0.1:8000
+# http://127.0.0.1:8000/docs
+# http://127.0.0.1:8000/redoc --> redoc
+# http://127.0.0.1:8000/hello_world
+
+
+----------------------------
+
+Create app.py
+Create schemas
+Create db.py 
+
+------------- New Vesion of imagekit 5x does not accept public key
+
+error --> got an unexpected keyword argument 'public_key'
+error --> Import "imagekitio.models.UploadFileRequestOptions" -->> could not be resolved
+
+--> solution
+
+uv pip uninstall imagekitio
+uv pip install imagekitio==4.2.0
+
+-------------------------------- Frontend 
+
+uv add streamlit
+
+uv run streamlit run frontend.py
+
+
+-------------------------------------------------
+
+regester --> email = samir@gmail.com + passward = 200  ---> take id form output 
+Authorize box --> email + passward + id / client_id = a5494ff1-5ed7-4549-87a3-a0bff52d7019  + client secret = sakjdhkjad872323
+
+Login --> done

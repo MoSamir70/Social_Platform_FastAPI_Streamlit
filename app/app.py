@@ -8,7 +8,6 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy import select
 from app.images import imagekit
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 
 import shutil
 import os
@@ -115,14 +114,13 @@ async def upload_file(
 
        # upload file to imagekit
 
-        upload_result = imagekit.upload_file(
-            file=open(temp_file_path, "rb"), # rb = read bytes
-            file_name=file.filename,
-            options=UploadFileRequestOptions(
+        with open(temp_file_path, "rb") as image_file:
+            upload_result = imagekit.files.upload(
+                file=image_file,
+                file_name=file.filename,
                 use_unique_file_name=True,
-                tags=["backend-upload"]
+                tags=["backend-upload"],
             )
-        )
 
         if upload_result.response_metadata.http_status_code == 200:
             post = Post(

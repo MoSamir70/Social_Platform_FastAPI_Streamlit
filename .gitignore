@@ -11,3 +11,5 @@ wheels/
 
 
 .env
+uploaded_media/
+test.db

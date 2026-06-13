@@ -94,6 +94,9 @@ def encode_text_for_overlay(text):
 
 
 def create_transformed_url(original_url, transformation_params, caption=None):
+    if "imagekit.io" not in original_url:
+        return original_url
+
     if caption:
         encoded_caption = encode_text_for_overlay(caption)
         # Add text overlay at bottom with semi-transparent background

@@ -1,5 +1,6 @@
 #from fastapi import FastAPI, HTTPException
-from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Depends
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Depends, Request
+from fastapi.staticfiles import StaticFiles
 #from app.schemas import PostCreate , PostResponse
 
 from app.db import Post, create_db_and_tables, get_async_session , User
@@ -13,9 +14,15 @@ import shutil
 import os
 import uuid
 import tempfile
+from pathlib import Path
+from urllib.parse import urlparse
 
 from app.users import auth_backend, current_active_user, fastapi_users
 from app.schemas import PostCreate, PostResponse, UserRead, UserCreate, UserUpdate
+
+
+UPLOAD_DIR = Path("uploaded_media")
+UPLOAD_DIR.mkdir(exist_ok=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +30,7 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+app.mount("/media", StaticFiles(directory=UPLOAD_DIR), name="media")
 
 # @app.on_event("startup") --> old version
 
@@ -100,6 +108,7 @@ app.include_router(fastapi_users.get_users_router(UserRead, UserUpdate), prefix=
 
 @app.post("/upload")
 async def upload_file(
+    request: Request,
         file: UploadFile = File(...),
         caption: str = Form(""),
         user: User = Depends(current_active_user),
@@ -112,28 +121,40 @@ async def upload_file(
             temp_file_path = temp_file.name
             shutil.copyfileobj(file.file, temp_file) # copy from file.file to temp_file
 
-       # upload file to imagekit
+        file_type = "video" if file.content_type.startswith("video/") else "image"
 
-        with open(temp_file_path, "rb") as image_file:
-            upload_result = imagekit.files.upload(
-                file=image_file,
-                file_name=file.filename,
-                use_unique_file_name=True,
-                tags=["backend-upload"],
-            )
+        try:
+            with open(temp_file_path, "rb") as image_file:
+                upload_result = imagekit.files.upload(
+                    file=image_file,
+                    file_name=file.filename,
+                    use_unique_file_name=True,
+                    tags=["backend-upload"],
+                )
 
-        if upload_result.response_metadata.http_status_code == 200:
-            post = Post(
-                user_id=user.id,
-                caption=caption,
-                url=upload_result.url,
-                file_type="video" if file.content_type.startswith("video/") else "image",
-                file_name=upload_result.name
-            )
-            session.add(post)
-            await session.commit() # post = create -> add = add -> commit = write in db
-            await session.refresh(post)
-            return post
+            uploaded_url = getattr(upload_result, "url", None)
+            uploaded_name = getattr(upload_result, "name", file.filename)
+
+            if not uploaded_url:
+                raise ValueError("ImageKit upload did not return a URL")
+        except Exception:
+            fallback_name = f"{uuid.uuid4()}{Path(file.filename).suffix}"
+            fallback_path = UPLOAD_DIR / fallback_name
+            shutil.copy2(temp_file_path, fallback_path)
+            uploaded_url = str(request.base_url).rstrip("/") + f"/media/{fallback_name}"
+            uploaded_name = file.filename
+
+        post = Post(
+            user_id=user.id,
+            caption=caption,
+            url=uploaded_url,
+            file_type=file_type,
+            file_name=uploaded_name,
+        )
+        session.add(post)
+        await session.commit() # post = create -> add = add -> commit = write in db
+        await session.refresh(post)
+        return post
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -194,6 +215,12 @@ async def delete_post(post_id: str , session: AsyncSession = Depends(get_async_s
 
         if post.user_id != user.id:
             raise HTTPException(status_code=403, detail="You don't have permission to delete this post")
+
+        parsed_url = urlparse(post.url)
+        if parsed_url.path.startswith("/media/"):
+            local_file = UPLOAD_DIR / Path(parsed_url.path).name
+            if local_file.exists():
+                local_file.unlink()
 
         await session.delete(post)
         await session.commit()

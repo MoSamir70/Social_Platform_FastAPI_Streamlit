@@ -7,6 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase, relationship
 from datetime import datetime
 
+# users
+from fastapi_users.db import SQLAlchemyUserDatabase, SQLAlchemyBaseUserTableUUID
+from fastapi import Depends
+
+# ------------- by default Create 
+# id
+# email
+# hashed_password
+# is_active
+# is_superuser
+# is_verified
+# -------------------------
 
 
 # local database
@@ -20,6 +32,10 @@ class Base(DeclarativeBase):
     pass
 
 
+# one user have many posts
+# User.posts & Post.user --> two way directions
+class User(SQLAlchemyBaseUserTableUUID, Base):
+    posts = relationship("Post", back_populates="user")
 
 
 
@@ -58,5 +74,14 @@ async def create_db_and_tables():
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
+
+
+
+
+# FastAPi automatic inject Session —> ( Dependency Injection )
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
+
+
 
 

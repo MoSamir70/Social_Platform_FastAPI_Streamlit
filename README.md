@@ -157,4 +157,13 @@ curl -X DELETE http://127.0.0.1:8000/posts/POST_ID \
 ```
 
 
+## Screenshot
 
+![Frontend Streamlit UI ](screenshot/Frontend_UI.jpg)
+
+
+![Endpoints ](screenshot/Backend_Endpoints.jpg)
+
+![Succesfull JWT Auth ](screenshot/Succesfull_Authintication.jpg)
+
+![Succesfull Upload ](test_Upload/Upload_is_done.png)

@@ -21,10 +21,12 @@ Users can register, log in, upload images or videos with captions, view a feed, 
 - Uvicorn
 - SQLAlchemy 2.x async
 - SQLite with `aiosqlite`
-- fastapi-users
+- fastapi-users (JWT auth)
 - ImageKit Python SDK
 - Streamlit
 - python-dotenv
+- uv (dependency management)
+- Docker & Docker Compose
 
 ## Folder Structure
 
@@ -33,19 +35,24 @@ Users can register, log in, upload images or videos with captions, view a feed, 
 ├── main.py
 ├── frontend.py
 ├── pyproject.toml
+├── uv.lock
 ├── README.md
 ├── .env
 ├── .env.example
-├── test_Upload/
-│   ├── Sam.png
-│   └── portfolio.png
+├── docker-compose.yml
+├── Dockerfile
+├── Dockerfile.frontend
+│
 ├── app/
 │   ├── app.py
 │   ├── db.py
 │   ├── images.py
 │   ├── schemas.py
 │   └── users.py
-└── uploaded_media/
+│
+├── uploaded_media/
+├── test_Upload/
+└── screenshot/
 ```
 
 Notes:
@@ -75,6 +82,8 @@ uv sync
 
 2. Create `.env` from `.env.example` and fill in your ImageKit keys.
 
+# Rnninng without Docker
+
 3. Run the backend.
 
 ```bash
@@ -91,6 +100,19 @@ uv run streamlit run frontend.py
 
 - FastAPI docs: http://127.0.0.1:8000/docs
 - Streamlit app: the URL shown by Streamlit
+
+
+# oR Run With Docker
+
+```bash
+docker compose up --build
+```
+
+- Services (Docker)
+
+Backend (FastAPI docs) URL : http://localhost:8000/docs
+
+Frontend (Streamlit) URL: http://localhost:8501
 
 ## How It Works
 
